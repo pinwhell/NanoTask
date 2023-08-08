@@ -5,6 +5,8 @@
 #include <memory>
 #include <unordered_map>
 #include <string>
+#include <utility>
+#include <queue>
 
 namespace NanoTask {
 
@@ -25,21 +27,6 @@ namespace NanoTask {
     class Task {
     public:
         /**
-         * \brief Constructs a Task object with the specified function and arguments.
-         *
-         * \tparam Func        The type of the function to be bound.
-         * \tparam BoundArgs   The types of the arguments to be bound.
-         * \param func        The function to be bound.
-         * \param args        The arguments to be bound.
-         */
-        template<typename Func, typename... BoundArgs>
-        inline Task(Func&& func, BoundArgs&&... args) {
-            mHasSetInterval = false;
-
-            mTask = std::bind(std::forward<Func>(func), std::forward<BoundArgs>(args)...);
-        }
-
-        /**
          * \brief Constructs a Task object with the specified duration, function, and arguments.
          *
          * \tparam DurType     The type of the duration.
@@ -49,10 +36,15 @@ namespace NanoTask {
          * \param func        The function to be bound.
          * \param args        The arguments to be bound.
          */
-        template<typename DurType, typename Func, typename... BoundArgs>
+        template<typename DurType, class Func, class... BoundArgs>
         inline Task(std::chrono::duration<DurType> itrvl, Func&& func, BoundArgs&&... args)
-            : Task(std::forward<Func>(func), std::forward<BoundArgs>(args)...)
         {
+            mHasSetInterval = false;
+
+            mTask = [func = std::forward<Func>(func), args = std::make_tuple(args...)]() {
+                std::apply(func, args);
+            };
+
             setInterval(itrvl);
         }
 
@@ -152,6 +144,8 @@ namespace NanoTask {
         }
 
     private:
+
+
         /**
          * \brief Handles the interval change event.
          *

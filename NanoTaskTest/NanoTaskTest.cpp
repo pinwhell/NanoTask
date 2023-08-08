@@ -45,10 +45,18 @@ int main()
 		"15 Second"
 	);
 
+	auto tsk5 = std::make_unique<NanoTask::Task>(
+		std::chrono::seconds(15),
+		[&]() {
+			printf("Hi");
+		}
+	);
+
 	mgr.Add("1Sec", tsk1);
 	mgr.Add(tsk2);
 	mgr.Add("10Sec", tsk3);
 	mgr.Add(tsk4);
+	mgr.Add(tsk5);
 
 	bool bTask1Removed = false;
 
